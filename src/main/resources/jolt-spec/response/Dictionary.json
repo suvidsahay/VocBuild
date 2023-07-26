@@ -1,0 +1,18 @@
+[
+  {
+    "operation": "shift",
+    "spec": {
+      "*": {
+        "meanings": {
+          "*": {
+            "definitions": {
+              "*": {
+                "definition": "definition"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]
