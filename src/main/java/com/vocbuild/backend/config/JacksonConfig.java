@@ -1,4 +1,4 @@
-package org.vocbuild.config;
+package com.vocbuild.backend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;

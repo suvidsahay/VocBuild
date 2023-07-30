@@ -1,4 +1,4 @@
-package org.vocbuild;
+package com.vocbuild.backend;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.SpringApplication;

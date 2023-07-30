@@ -1,4 +1,4 @@
-package org.vocbuild.util;
+package com.vocbuild.backend.util;
 
 import com.bazaarvoice.jolt.Chainr;
 import com.bazaarvoice.jolt.JsonUtils;

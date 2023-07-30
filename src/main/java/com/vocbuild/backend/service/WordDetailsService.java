@@ -1,6 +1,10 @@
-package org.vocbuild.service;
+package com.vocbuild.backend.service;
 
+import com.vocbuild.backend.model.Definition;
+import com.vocbuild.backend.model.SubtitleModel;
+import com.vocbuild.backend.model.WordDetails;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -8,13 +12,16 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.http.HttpException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.vocbuild.model.Definition;
-import org.vocbuild.util.TranslatorUtil;
+import com.vocbuild.backend.util.TranslatorUtil;
 
 @Service
 @Slf4j
-public class DictionaryService {
+public class WordDetailsService {
+
+    @Autowired
+    ElasticSearchService elasticSearchService;
 
     final String BASE_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 
@@ -26,7 +33,14 @@ public class DictionaryService {
             .readTimeout(30, TimeUnit.SECONDS)
             .build();
 
-    public Definition getMeaning(@NonNull final String word) throws HttpException {
+    public WordDetails getWordDetails(@NonNull final String word) throws HttpException {
+        List<SubtitleModel> responseModel = elasticSearchService.searchDocument(
+                "subtitle", "text", word, SubtitleModel.class);
+
+        return new WordDetails(getMeaning(word), responseModel);
+    }
+
+    private Definition getMeaning(final String word) throws HttpException {
         Request request = new Request.Builder()
                 .url(BASE_URL + word)
                 .get()
@@ -45,6 +59,5 @@ public class DictionaryService {
         } catch (IOException e) {
             throw new HttpException("Error making request: " + e.getMessage());
         }
-
     }
 }

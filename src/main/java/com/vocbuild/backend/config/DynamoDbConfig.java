@@ -1,4 +1,4 @@
-package org.vocbuild.config;
+package com.vocbuild.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

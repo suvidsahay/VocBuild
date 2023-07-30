@@ -1,4 +1,4 @@
-package org.vocbuild.config;
+package com.vocbuild.backend.config;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;

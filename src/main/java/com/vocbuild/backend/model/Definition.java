@@ -1,4 +1,4 @@
-package org.vocbuild.model;
+package com.vocbuild.backend.model;
 
 import java.util.List;
 import lombok.AllArgsConstructor;

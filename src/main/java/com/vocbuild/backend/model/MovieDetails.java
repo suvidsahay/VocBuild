@@ -1,4 +1,4 @@
-package org.vocbuild.model;
+package com.vocbuild.backend.model;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -16,9 +16,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 public class MovieDetails {
     private String imdbMovieId;
     private String movieName;
-    private String movieS3location;
-    private String subtitlesS3location;
-    private Duration synchronizationTime;
     private LocalDate dateAdded;
 
     @DynamoDbPartitionKey
@@ -37,22 +34,6 @@ public class MovieDetails {
 
     public void setMovieName(String movieName) {
         this.movieName = movieName;
-    }
-
-    public String getMovieS3location() {
-        return movieS3location;
-    }
-
-    public void setMovieS3location(String movieS3location) {
-        this.movieS3location = movieS3location;
-    }
-
-    public String getSubtitlesS3location() {
-        return subtitlesS3location;
-    }
-
-    public void setSubtitlesS3location(String subtitlesS3location) {
-        this.subtitlesS3location = subtitlesS3location;
     }
 
     public LocalDate getDateAdded() {

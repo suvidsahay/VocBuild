@@ -1,4 +1,4 @@
-package org.vocbuild.exceptions;
+package com.vocbuild.backend.exceptions;
 
 import lombok.NonNull;
 

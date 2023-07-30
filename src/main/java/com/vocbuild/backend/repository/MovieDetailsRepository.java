@@ -1,10 +1,10 @@
-package org.vocbuild.repository;
+package com.vocbuild.backend.repository;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.vocbuild.model.MovieDetails;
+import com.vocbuild.backend.model.MovieDetails;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;

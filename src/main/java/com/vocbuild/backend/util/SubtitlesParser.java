@@ -1,4 +1,4 @@
-package org.vocbuild.util;
+package com.vocbuild.backend.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,10 +15,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-import org.vocbuild.exceptions.ValidationException;
-import org.vocbuild.model.SubtitleModel;
+import com.vocbuild.backend.exceptions.ValidationException;
+import com.vocbuild.backend.model.SubtitleModel;
 
 @Component
 @Slf4j
@@ -68,7 +71,7 @@ public class SubtitlesParser {
             }
 
         }
-        model.setText(textLine);
+        model.setText(stripHtmlTags(textLine));
         if(model.getText().isEmpty() || model.getStartTime() == null || model.getEndTime() == null) {
             throw new ValidationException("An error occurred while processing subtitles above line: " + lineSegment);
         }
@@ -83,6 +86,14 @@ public class SubtitlesParser {
         } catch (DateTimeParseException ex) {
             throw new ValidationException("Time format is incorrect above line: " + lineSegment);
         }
+    }
+
+    private static String stripHtmlTags(String html) {
+        Document doc = Jsoup.parse(html);
+        // Safelist.none() allows no tags, effectively stripping all HTML tags
+        // If you want to allow certain tags, you can customize the Whitelist accordingly.
+        String cleanText = Jsoup.clean(doc.text(), Safelist.none());
+        return cleanText;
     }
 
 

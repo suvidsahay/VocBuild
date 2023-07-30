@@ -1,4 +1,4 @@
-package org.vocbuild.util;
+package com.vocbuild.backend.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
