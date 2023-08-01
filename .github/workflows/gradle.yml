@@ -31,4 +31,4 @@ jobs:
       with:
         arguments: build
     - name: Execute Jar File
-      run: sudo kill -9 `sudo lsof -t -i:80` & sudo ./gradlew bootrun &
+      run: sudo kill -9 `sudo lsof -t -i:80` | sudo ./gradlew bootrun &
