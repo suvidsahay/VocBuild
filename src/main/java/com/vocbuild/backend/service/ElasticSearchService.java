@@ -15,51 +15,83 @@ import com.vocbuild.backend.model.ElasticSearchModel;
 
 @Service
 @Slf4j
-public class ElasticSearchService {
+public class ElasticSearchService implements SearchServiceInterface {
 
     @Autowired
     private ElasticsearchClient elasticsearchClient;
 
-    public void createOrUpdateDocument(@NonNull final String index, @NonNull final ElasticSearchModel model) {
-        try {
-            IndexResponse response = elasticsearchClient.index(i -> i
-                    .index(index)
-                    .document(model)
-            );
+    @Override
+    public void createOrUpdateDocument(@NonNull final String index, @NonNull final ElasticSearchModel model)
+            throws IOException {
+        IndexResponse response = elasticsearchClient.index(i -> i
+                .index(index)
+                .document(model)
+        );
 
-            log.info(response.toString());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        log.info(response.toString());
+
     }
 
+    @Override
     public <T> List<T> searchDocument(
             @NonNull final String index,
             @NonNull final String matchField,
             @NonNull final String matchText,
-            @NonNull final Class<T> tClass) {
-        try {
-            SearchResponse<T> response = elasticsearchClient.search(s -> s
-                            .index(index)
-                            .query(q -> q
-                                    .match(t -> t
-                                            .field(matchField)
-                                            .query(matchText)
-                                    )
-                            ),
-                    tClass);
+            @NonNull final Class<T> tClass) throws IOException {
+        SearchResponse<T> response = elasticsearchClient.search(s -> s
+                        .index(index)
+                        .query(q -> q
+                                .match(t -> t
+                                        .field(matchField)
+                                        .query(matchText)
+                                )
+                        ),
+                tClass);
 
-            List<Hit<T>> hits = response.hits().hits();
-            List<T> matches = new ArrayList<>();
-            for (Hit<T> hit: hits) {
-                T model = hit.source();
-                log.info("Found model " + model);
-                matches.add(model);
-            }
+        return getMatches(response);
+    }
 
-            return matches;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    @Override
+    public <T> List<T> searchDocumentWithLimits(
+            @NonNull final String index,
+            @NonNull final String matchField,
+            @NonNull final String matchText,
+            final int from,
+            final int size,
+            @NonNull final Class<T> tClass) throws IOException {
+
+        SearchResponse<T> response = null;
+        response = elasticsearchClient.search(s -> s
+                        .index(index)
+                        .query(q -> q
+                                .match(t -> t
+                                        .field(matchField)
+                                        .query(matchText)
+                                )
+                        )
+                        .from(from)
+                        .size(size),
+                tClass);
+
+        return getMatches(response);
+
+    }
+
+    @Override
+    public <T> long getTotal(@NonNull String index, @NonNull String matchField,
+            @NonNull String matchText, @NonNull Class<T> tClass) {
+        return 0;
+    }
+
+    private <T> List<T> getMatches(SearchResponse<T> response) {
+        List<Hit<T>> hits = response.hits().hits();
+        List<T> matches = new ArrayList<>();
+        for (Hit<T> hit: hits) {
+            T model = hit.source();
+            log.info("Found model " + model);
+            matches.add(model);
         }
+
+        return matches;
     }
 }

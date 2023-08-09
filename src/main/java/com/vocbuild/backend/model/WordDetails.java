@@ -9,5 +9,5 @@ import lombok.Data;
 public class WordDetails {
     private Definition definition;
 
-    private List<SubtitleModel> subtitleModel;
+    private List<SubtitleModel> wordContext;
 }

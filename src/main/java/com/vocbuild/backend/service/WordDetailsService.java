@@ -9,10 +9,12 @@ import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
+import okhttp3.OkHttpClient.Builder;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.http.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import com.vocbuild.backend.util.TranslatorUtil;
 
@@ -20,27 +22,28 @@ import com.vocbuild.backend.util.TranslatorUtil;
 @Slf4j
 public class WordDetailsService {
 
+    @Qualifier("OpenSearchService")
     @Autowired
-    ElasticSearchService elasticSearchService;
+    SearchServiceInterface searchService;
 
     final String BASE_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 
     final String JOLT_SPEC_DICTIONARY_RESPONSE_PATH = "/jolt-spec/response/Dictionary.json";
 
-    final OkHttpClient client = new OkHttpClient.Builder()
+    final OkHttpClient client = new Builder()
             .connectTimeout(20, TimeUnit.SECONDS)
             .writeTimeout(20, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .build();
 
-    public WordDetails getWordDetails(@NonNull final String word) throws HttpException {
-        List<SubtitleModel> responseModel = elasticSearchService.searchDocument(
+    public WordDetails getWordDetails(@NonNull final String word) throws HttpException, IOException {
+        List<SubtitleModel> responseModel = searchService.searchDocument(
                 "subtitle", "text", word, SubtitleModel.class);
 
         return new WordDetails(getMeaning(word), responseModel);
     }
 
-    private Definition getMeaning(final String word) throws HttpException {
+    public Definition getMeaning(@NonNull final String word) throws HttpException {
         Request request = new Request.Builder()
                 .url(BASE_URL + word)
                 .get()
@@ -59,5 +62,9 @@ public class WordDetailsService {
         } catch (IOException e) {
             throw new HttpException("Error making request: " + e.getMessage());
         }
+    }
+
+    public long getTotal(@NonNull final String word) throws IOException {
+        return searchService.getTotal("subtitle", "text", word, SubtitleModel.class);
     }
 }
