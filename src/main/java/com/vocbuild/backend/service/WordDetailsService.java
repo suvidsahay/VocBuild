@@ -1,5 +1,9 @@
 package com.vocbuild.backend.service;
 
+import com.vocbuild.backend.exceptions.ErrorCode;
+import com.vocbuild.backend.exceptions.ServerException;
+import com.vocbuild.backend.exceptions.ValidationException;
+import com.vocbuild.backend.exceptions.VocBuildHttpException;
 import com.vocbuild.backend.model.Definition;
 import com.vocbuild.backend.model.SubtitleModel;
 import com.vocbuild.backend.model.WordDetails;
@@ -12,9 +16,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.apache.http.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import com.vocbuild.backend.util.TranslatorUtil;
 
@@ -36,14 +40,19 @@ public class WordDetailsService {
             .readTimeout(30, TimeUnit.SECONDS)
             .build();
 
-    public WordDetails getWordDetails(@NonNull final String word) throws HttpException, IOException {
-        List<SubtitleModel> responseModel = searchService.searchDocument(
-                "subtitle", "text", word, SubtitleModel.class);
+    public WordDetails getWordDetails(@NonNull final String word) {
+        List<SubtitleModel> responseModel = null;
+        try {
+            responseModel = searchService.searchDocument(
+                    "subtitle", "text", word, SubtitleModel.class);
+        } catch (IOException e) {
+            throw new ServerException(e);
+        }
 
         return new WordDetails(getMeaning(word), responseModel);
     }
 
-    public Definition getMeaning(@NonNull final String word) throws HttpException {
+    public Definition getMeaning(@NonNull final String word) {
         Request request = new Request.Builder()
                 .url(BASE_URL + word)
                 .get()
@@ -52,7 +61,10 @@ public class WordDetailsService {
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 log.error("Unexpected response code: {}", response);
-                throw new HttpException("Unsuccessful response: " + response.code());
+                if(response.code() == HttpStatus.NOT_FOUND.value()) {
+                    throw new ValidationException("The given word " + word + " doesn't exist. Please check your input and try again");
+                }
+                throw new VocBuildHttpException("Unsuccessful response: " + response.code());
             }
             String responseBody = response.body().string();
             log.info("Received response: {}", responseBody);
@@ -60,11 +72,15 @@ public class WordDetailsService {
             return TranslatorUtil.translate(responseBody, JOLT_SPEC_DICTIONARY_RESPONSE_PATH,
                     Definition.class);
         } catch (IOException e) {
-            throw new HttpException("Error making request: " + e.getMessage());
+            throw new ServerException("Error making request: " + e.getMessage());
         }
     }
 
-    public long getTotal(@NonNull final String word) throws IOException {
-        return searchService.getTotal("subtitle", "text", word, SubtitleModel.class);
+    public long getTotal(@NonNull final String word) {
+        try {
+            return searchService.getTotal("subtitle", "text", word, SubtitleModel.class);
+        } catch (IOException e) {
+            throw new ServerException(e);
+        }
     }
 }

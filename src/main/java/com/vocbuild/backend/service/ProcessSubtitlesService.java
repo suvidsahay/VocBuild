@@ -1,5 +1,7 @@
 package com.vocbuild.backend.service;
 
+import com.vocbuild.backend.exceptions.ServerException;
+import com.vocbuild.backend.exceptions.ValidationException;
 import com.vocbuild.backend.model.SubtitleModel;
 import com.vocbuild.backend.repository.MovieDetailsRepository;
 import com.vocbuild.backend.util.SubtitlesParser;
@@ -27,35 +29,31 @@ public class ProcessSubtitlesService {
     @Autowired
     private MovieDetailsRepository movieDetailsRepository;
 
-    public void processSubtitles(@NonNull final MultipartFile file,
+    public String processSubtitles(@NonNull final MultipartFile file,
             @NonNull final String imdbMovieId,
             @NonNull final String movieName) {
-        try {
-            if(movieDetailsRepository.getMovieDetails(imdbMovieId) != null) {
-                return;
-            }
-            final MovieDetails movieDetails = MovieDetails.builder()
-                    .imdbMovieId(imdbMovieId)
-                    .movieName(movieName)
-                    .dateAdded(LocalDate.now())
-                    .build();
-            movieDetailsRepository.save(movieDetails);
-            for(SubtitleModel subtitleModel : subtitlesParser.parseSubtitles(file)) {
-                subtitleModel.setId(imdbMovieId);
-                subtitleModel.setMovieName(movieName);
-                searchService.createOrUpdateDocument("subtitle", subtitleModel);
-                System.out.println(subtitleModel);
-            }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        if(movieDetailsRepository.getMovieDetails(imdbMovieId) != null) {
+            return "The file is already processed in the system";
         }
+        final MovieDetails movieDetails = MovieDetails.builder()
+                .imdbMovieId(imdbMovieId)
+                .movieName(movieName)
+                .dateAdded(LocalDate.now())
+                .build();
+        movieDetailsRepository.save(movieDetails);
+        for(SubtitleModel subtitleModel : subtitlesParser.parseSubtitles(file)) {
+            subtitleModel.setId(imdbMovieId);
+            subtitleModel.setMovieName(movieName);
+            try {
+                searchService.createOrUpdateDocument("subtitle", subtitleModel);
+            } catch (IOException e) {
+                throw new ServerException(e);
+            }
+        }
+        return "File uploaded successfully";
     }
 
     public List<SubtitleModel> processAndReturnSubtitles(@NonNull final MultipartFile file) {
-        try {
-            return subtitlesParser.parseSubtitles(file);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return subtitlesParser.parseSubtitles(file);
     }
 }

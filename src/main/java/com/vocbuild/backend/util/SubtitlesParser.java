@@ -1,5 +1,6 @@
 package com.vocbuild.backend.util;
 
+import com.vocbuild.backend.exceptions.ServerException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,26 +28,34 @@ import com.vocbuild.backend.model.SubtitleModel;
 @Slf4j
 public class SubtitlesParser {
 
-    public List<SubtitleModel> parseSubtitles(@NonNull final MultipartFile subtitleFile) throws IOException {
-        InputStream is = subtitleFile.getInputStream();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder content = new StringBuilder();
-        String line;
-        List<SubtitleModel> subtitles = new ArrayList<>();
-        long lineNumber = 0;
-        while((line = reader.readLine()) != null) {
-            content.append(line).append("\n");
-            lineNumber++;
-            if(line.isEmpty()) {
-                SubtitleModel subtitle = buildSubtitleSegment(content.toString(), lineNumber);
-                subtitles.add(subtitle);
-                content = new StringBuilder();
+    public List<SubtitleModel> parseSubtitles(@NonNull final MultipartFile subtitleFile) {
+        try {
+            InputStream is = subtitleFile.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            StringBuilder content = new StringBuilder();
+            String line;
+            List<SubtitleModel> subtitles = new ArrayList<>();
+            long lineNumber = 0;
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+                lineNumber++;
+                if (line.isEmpty()) {
+                    SubtitleModel subtitle = buildSubtitleSegment(content.toString(), lineNumber);
+                    subtitles.add(subtitle);
+                    content = new StringBuilder();
+                }
             }
+
+            SubtitleModel subtitle = buildSubtitleSegment(content.toString(), lineNumber);
+            subtitles.add(subtitle);
+            content = new StringBuilder();
+
+            log.info("Processed subtitles file with {} lines", subtitles.size());
+
+            return subtitles;
+        } catch (IOException ex) {
+            throw new ServerException(ex);
         }
-
-        log.info("Processed subtitles file with {} lines", subtitles.size());
-
-        return subtitles;
     }
 
     private SubtitleModel buildSubtitleSegment(final String segment, final long lineSegment) {
@@ -58,7 +67,7 @@ public class SubtitlesParser {
             Pattern indexPattern = Pattern.compile("([0-9]+)");
             Pattern timePattern = Pattern.compile("([0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}) --> ([0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})");
 
-            if(indexPattern.matcher(line).matches()) {
+            if(line.matches("\\d+")) {
                 model.setSeq(Integer.parseInt(line));
             } else if(timePattern.matcher(line).matches()) {
                 Matcher matcher = timePattern.matcher(line);

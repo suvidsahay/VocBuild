@@ -1,10 +1,18 @@
 package com.vocbuild.backend.exceptions;
 
-import lombok.NonNull;
+public class ValidationException extends VocBuildException {
 
-public class ValidationException extends RuntimeException{
-    public ValidationException(@NonNull final String message) {
-        super(message);
+    public static final ErrorCode errorCode = ErrorCode.CLIENT_ERR;
+    public ValidationException() {
+        super(errorCode);
+    }
+
+    public ValidationException(String errorMessage) {
+        super(errorCode, errorMessage);
+    }
+
+    public ValidationException(Throwable cause) {
+        super(errorCode, cause);
     }
 
 }
