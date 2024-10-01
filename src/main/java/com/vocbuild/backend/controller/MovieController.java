@@ -3,6 +3,7 @@ package com.vocbuild.backend.controller;
 import com.vocbuild.backend.model.SubtitleModel;
 import com.vocbuild.backend.service.ProcessSubtitlesService;
 import com.vocbuild.backend.service.VideoService;
+import java.io.IOException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -49,11 +50,26 @@ public class MovieController {
         return videoService.getClip(word, pageNumber, rangeHeader);
     }
 
+    @GetMapping("clip/metadata/{word}/{pageNumber}")
+    @ResponseStatus(HttpStatus.OK)
+    @CrossOrigin(origins = "*", allowedHeaders = "*")
+    public SubtitleModel getClipMetadata(@PathVariable String word,
+            @PathVariable int pageNumber) throws IOException {
+        return videoService.getClipMetadata(word, pageNumber);
+    }
+
     @PostMapping("subtitles")
     @ResponseStatus(HttpStatus.OK)
     @CrossOrigin(origins = "*", allowedHeaders = "*")
     public List<SubtitleModel> getSubtitles(@RequestPart("file") MultipartFile file) {
         return processSubtitlesService.processAndReturnSubtitles(file);
+    }
+
+    @GetMapping("subtitles/backup")
+    @ResponseStatus(HttpStatus.OK)
+    @CrossOrigin(origins = "*", allowedHeaders = "*")
+    public String backupSubtitles(@RequestPart("file") MultipartFile file) {
+        return processSubtitlesService.backupSubtitles(file);
     }
 
 }

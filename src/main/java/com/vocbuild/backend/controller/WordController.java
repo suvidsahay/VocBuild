@@ -3,6 +3,8 @@ package com.vocbuild.backend.controller;
 import com.vocbuild.backend.model.Definition;
 import com.vocbuild.backend.model.WordDetails;
 import com.vocbuild.backend.service.WordDetailsService;
+import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -39,5 +41,19 @@ public class WordController {
     @CrossOrigin(origins = "*", allowedHeaders = "*")
     public long getTotal(@PathVariable("word") String word) {
         return wordDetailsService.getTotal(word);
+    }
+
+    @GetMapping("/count")
+    @ResponseStatus(HttpStatus.OK)
+    @CrossOrigin(origins = "*", allowedHeaders = "*")
+    public void getWordCounts() {
+        wordDetailsService.getWordCounts();
+    }
+
+    @GetMapping("/suggest/{word}")
+    @ResponseStatus(HttpStatus.OK)
+    @CrossOrigin(origins = "*", allowedHeaders = "*")
+    public List<String> getSuggestions(@PathVariable("word") String word) {
+        return wordDetailsService.getSuggestions(word);
     }
 }

@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -16,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.safety.Safelist;
@@ -39,16 +41,18 @@ public class SubtitlesParser {
             while ((line = reader.readLine()) != null) {
                 content.append(line).append("\n");
                 lineNumber++;
-                if (line.isEmpty()) {
-                    SubtitleModel subtitle = buildSubtitleSegment(content.toString(), lineNumber);
-                    subtitles.add(subtitle);
+                if (StringUtils.isEmpty(line)) {
+                    if(!StringUtils.isBlank(content.toString())) {
+                        SubtitleModel subtitle = buildSubtitleSegment(content.toString(), lineNumber);
+                        subtitles.add(subtitle);
+                    }
                     content = new StringBuilder();
                 }
             }
-
-            SubtitleModel subtitle = buildSubtitleSegment(content.toString(), lineNumber);
-            subtitles.add(subtitle);
-            content = new StringBuilder();
+            if(!StringUtils.isBlank(content.toString())) {
+                SubtitleModel subtitle = buildSubtitleSegment(content.toString(), lineNumber);
+                subtitles.add(subtitle);
+            }
 
             log.info("Processed subtitles file with {} lines", subtitles.size());
 
@@ -66,6 +70,12 @@ public class SubtitlesParser {
             String line = scanner.nextLine();
             Pattern indexPattern = Pattern.compile("([0-9]+)");
             Pattern timePattern = Pattern.compile("([0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}) --> ([0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})");
+            /** Handle few cases:
+             * 1. When the text is just a number
+             * 2. When the text is empty: skip that subtitle
+             * 3. When there's extra line/s gap between the timestamp and subtitle
+             * 4. Handle srt files which are not UTF-8 encoded
+             */
 
             if(line.matches("\\d+")) {
                 model.setSeq(Integer.parseInt(line));
@@ -104,6 +114,4 @@ public class SubtitlesParser {
         String cleanText = Jsoup.clean(doc.text(), Safelist.none());
         return cleanText;
     }
-
-
 }

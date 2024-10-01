@@ -78,9 +78,20 @@ public class ElasticSearchService implements SearchServiceInterface {
     }
 
     @Override
+    public <T> List<T> getAllDocuments(@NonNull String index, @NonNull Class<T> tClass) throws IOException {
+        return null;
+    }
+
+    @Override
     public <T> long getTotal(@NonNull String index, @NonNull String matchField,
             @NonNull String matchText, @NonNull Class<T> tClass) {
         return 0;
+    }
+
+    @Override
+    public <T> List<T> searchDocumentWithWildcards(@NonNull String index, @NonNull String matchField,
+            @NonNull String matchText, @NonNull Class<T> tClass) throws IOException {
+        return null;
     }
 
     private <T> List<T> getMatches(SearchResponse<T> response) {

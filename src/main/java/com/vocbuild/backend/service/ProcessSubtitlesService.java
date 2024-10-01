@@ -29,17 +29,21 @@ public class ProcessSubtitlesService {
     @Autowired
     private MovieDetailsRepository movieDetailsRepository;
 
+    @Autowired
+    private OMDBService omdbService;
+
     public String processSubtitles(@NonNull final MultipartFile file,
             @NonNull final String imdbMovieId,
             @NonNull final String movieName) {
-        if(movieDetailsRepository.getMovieDetails(imdbMovieId) != null) {
-            return "The file is already processed in the system";
-        }
+//        if(movieDetailsRepository.getMovieDetails(imdbMovieId) != null) {
+//            return "The file is already processed in the system";
+//        }
         final MovieDetails movieDetails = MovieDetails.builder()
                 .imdbMovieId(imdbMovieId)
                 .movieName(movieName)
                 .dateAdded(LocalDate.now())
                 .build();
+        movieDetails.setMovieFullName(omdbService.getMovieNameFromIMDBId(imdbMovieId));
         movieDetailsRepository.save(movieDetails);
         for(SubtitleModel subtitleModel : subtitlesParser.parseSubtitles(file)) {
             subtitleModel.setId(imdbMovieId);
@@ -47,6 +51,7 @@ public class ProcessSubtitlesService {
             try {
                 searchService.createOrUpdateDocument("subtitle", subtitleModel);
             } catch (IOException e) {
+                e.printStackTrace();
                 throw new ServerException(e);
             }
         }
@@ -55,5 +60,13 @@ public class ProcessSubtitlesService {
 
     public List<SubtitleModel> processAndReturnSubtitles(@NonNull final MultipartFile file) {
         return subtitlesParser.parseSubtitles(file);
+    }
+
+    public String backupSubtitles(@NonNull final MultipartFile file) {
+        String imdbMovieId = file.getOriginalFilename().split("\\.")[0];
+
+        String movieName = movieDetailsRepository.getMovieDetails(imdbMovieId).getMovieName();
+
+        return processSubtitles(file, imdbMovieId, movieName);
     }
 }

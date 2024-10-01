@@ -1,0 +1,5 @@
+x, 13
+xanax, 2
+xe, 212
+xhosa, 13
+xu, 7

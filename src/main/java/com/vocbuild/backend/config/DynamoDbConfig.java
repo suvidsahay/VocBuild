@@ -14,8 +14,8 @@ public class DynamoDbConfig {
     @Bean
     public DynamoDbClient dynamoDbClient() {
         return DynamoDbClient.builder()
-                .credentialsProvider(credentialsProvider)
                 .region(region)
+//                .credentialsProvider(credentialsProvider)
                 .build();
     }
 }

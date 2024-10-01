@@ -21,7 +21,7 @@ public class OpenSearchConfig {
     @Value("${amazon.aws.secretkey}")
     private String secretKey;
 
-    private static final String host = "search-vocbuild-backend-rmp2ovhtfbfvvvd462bqe2zl5y.ap-south-1.es.amazonaws.com";
+    private static final String host = "search-vocbuild-3sxumk5cnlijv2ucvbkdagi44q.ap-south-1.es.amazonaws.com";
     private static Region region = Region.AP_SOUTH_1;
 
 

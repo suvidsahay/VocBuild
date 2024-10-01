@@ -3,12 +3,17 @@ package com.vocbuild.backend.service;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.util.IOUtils;
 import com.vocbuild.backend.exceptions.ServerException;
+import com.vocbuild.backend.exceptions.ValidationException;
+import com.vocbuild.backend.model.MovieDetails;
 import com.vocbuild.backend.model.SubtitleModel;
+import com.vocbuild.backend.repository.MovieDetailsRepository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,9 +32,15 @@ public class VideoService {
     @Autowired
     AmazonS3 amazonS3;
 
+    @Autowired
+    OMDBService omdbService;
+
     @Qualifier("OpenSearchService")
     @Autowired
     SearchServiceInterface searchService;
+
+    @Autowired
+    MovieDetailsRepository movieDetailsRepository;
 
     public ResponseEntity<StreamingResponseBody> getClip(@NonNull final String word, final int pageNumber) {
         try {
@@ -95,5 +106,30 @@ public class VideoService {
                         String.format("%s/%s.mp4", subtitles.get(0).getMovieName(), subtitles.get(0).getSeq()))
                 .getObjectContent();
         return IOUtils.toByteArray(in);
+    }
+
+    public SubtitleModel getClipMetadata(@NonNull final String word,
+            @NonNull final int pageNumber) throws IOException {
+        List<SubtitleModel> subtitleModels =
+                searchService.searchDocumentWithLimits("subtitle", "text", word, pageNumber, 1, SubtitleModel.class);
+
+        SubtitleModel subtitleModel;
+        if(!subtitleModels.isEmpty()) {
+            subtitleModel = subtitleModels.get(0);
+        } else {
+            throw new ValidationException("The given word " + word + " doesn't exist. Please check your input and try again");
+        }
+
+        MovieDetails movieDetails = movieDetailsRepository.getMovieDetails(subtitleModel.getId());
+
+        if(StringUtils.isEmpty(movieDetails.getMovieFullName())) {
+            // New addition of column movieFullName. The below code is used for back filling the entry.
+            movieDetails.setMovieFullName(omdbService.getMovieNameFromIMDBId(subtitleModel.getId()));
+            movieDetailsRepository.save(movieDetails);
+        }
+
+        subtitleModel.setMovieName(movieDetails.getMovieFullName());
+
+        return subtitleModel;
     }
 }

@@ -17,6 +17,7 @@ public class MovieDetails {
     private String imdbMovieId;
     private String movieName;
     private LocalDate dateAdded;
+    private String movieFullName;
 
     @DynamoDbPartitionKey
     @DynamoDbAttribute(value = "ImdbMovieId")
@@ -42,5 +43,13 @@ public class MovieDetails {
 
     public void setDateAdded(LocalDate dateAdded) {
         this.dateAdded = dateAdded;
+    }
+
+    public String getMovieFullName() {
+        return movieFullName;
+    }
+
+    public void setMovieFullName(String movieFullName) {
+        this.movieFullName = movieFullName;
     }
 }
